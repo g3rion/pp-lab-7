@@ -9,7 +9,6 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 
 import java.io.File;
-import java.util.Arrays;
 
 public class Main extends Application {
     private TextField directoryPathField;
@@ -55,28 +54,32 @@ public class Main extends Application {
 
     private void searchFiles() {
         String directoryPath = directoryPathField.getText();
-        String searchPhrase = searchField.getText();
         if (directoryPath == null || directoryPath.isEmpty()) {
-            resultArea.setText("Please select a directory.");
-            return;
-        }
-        if (searchPhrase == null || searchPhrase.isEmpty()) {
-            resultArea.setText("Please enter a search phrase.");
+            resultArea.setText("Please provide a directory path.");
             return;
         }
 
         File directory = new File(directoryPath);
-        if (directory.exists() && directory.isDirectory()) {
-            File[] files = directory.listFiles((dir, name) -> name.contains(searchPhrase));
-            if (files != null && files.length > 0) {
-                StringBuilder results = new StringBuilder("Search results:\n");
-                Arrays.stream(files).forEach(file -> results.append(file.getAbsolutePath()).append("\n"));
-                resultArea.setText(results.toString());
-            } else {
-                resultArea.setText("No files found.");
+        if (!directory.exists() || !directory.isDirectory()) {
+            resultArea.setText("The provided path is not a directory.");
+            return;
+        }
+
+        StringBuilder results = new StringBuilder();
+        listFilesInDirectory(directory, results);
+        resultArea.setText(results.toString());
+    }
+
+    private void listFilesInDirectory(File directory, StringBuilder results) {
+        File[] files = directory.listFiles();
+        if (files != null) {
+            for (File file : files) {
+                if (file.isFile()) {
+                    results.append(file.getAbsolutePath()).append("\n");
+                } else if (file.isDirectory()) {
+                    listFilesInDirectory(file, results);
+                }
             }
-        } else {
-            resultArea.setText("Invalid directory.");
         }
     }
 
